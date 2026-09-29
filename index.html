@@ -349,7 +349,7 @@
             required
           >
         </div>
-        <div class="field">
+        <div class="field" id="password-field">
           <label for="password">Contraseña</label>
           <div class="password-wrap">
             <input
@@ -405,6 +405,7 @@
       const togglePassword = document.querySelector("#toggle-password");
       const loginForm = document.querySelector("#login-form");
       const emailInput = document.querySelector("#email");
+      const passwordField = document.querySelector("#password-field");
       const confirmField = document.querySelector("#confirm-field");
       const confirmPasswordInput = document.querySelector("#confirm-password");
       const submitButton = document.querySelector("#submit-button");
@@ -443,8 +444,7 @@
         passwordInput.placeholder = isRecovery ? "No se necesita para recuperar" : "Ingresa tu contraseña";
         passwordInput.required = !isRecovery;
         passwordInput.minLength = isSignup || isUpdatingPassword ? 8 : 0;
-        passwordInput.hidden = isRecovery;
-        togglePassword.hidden = isRecovery;
+        passwordField.hidden = isRecovery;
         confirmField.hidden = !(isSignup || isUpdatingPassword);
         confirmPasswordInput.required = isSignup || isUpdatingPassword;
         confirmPasswordInput.minLength = isSignup || isUpdatingPassword ? 8 : 0;
@@ -458,6 +458,25 @@
         switchModeButton.textContent = isSignup ? "Ya tengo una cuenta" : "Crear cuenta";
         formMessage.textContent = "";
         formMessage.style.color = "";
+      }
+
+      function getAuthErrorMessage(error) {
+        const message = error instanceof Error ? error.message : "";
+        const normalized = message.toLowerCase();
+
+        if (normalized.includes("invalid login credentials")) {
+          return "El correo o la contraseña son incorrectos.";
+        }
+        if (normalized.includes("email not confirmed")) {
+          return "Confirma tu correo electrónico desde el enlace que te enviamos.";
+        }
+        if (normalized.includes("user already registered")) {
+          return "Ya existe una cuenta con ese correo.";
+        }
+        if (normalized.includes("email rate limit exceeded")) {
+          return "Se alcanzó el límite de correos. Inténtalo más tarde.";
+        }
+        return message || "Ocurrió un error al procesar la solicitud. Inténtalo de nuevo.";
       }
 
       function showSignedIn(user) {
@@ -478,18 +497,22 @@
 
       signOutButton.addEventListener("click", async () => {
         signOutButton.disabled = true;
-        const { error } = await supabase.auth.signOut();
-        signOutButton.disabled = false;
-        if (error) {
-          formMessage.textContent = `No se pudo cerrar la sesión: ${error.message}`;
-          return;
+        try {
+          const { error } = await supabase.auth.signOut();
+          if (error) {
+            throw error;
+          }
+          signedInPanel.hidden = true;
+          loginForm.hidden = false;
+          authLinks.hidden = false;
+          demoNote.hidden = false;
+          passwordInput.value = "";
+          setMode("login");
+        } catch (error) {
+          formMessage.textContent = `No se pudo cerrar la sesión: ${getAuthErrorMessage(error)}`;
+        } finally {
+          signOutButton.disabled = false;
         }
-        signedInPanel.hidden = true;
-        loginForm.hidden = false;
-        authLinks.hidden = false;
-        demoNote.hidden = false;
-        passwordInput.value = "";
-        setMode("login");
       });
 
       loginForm.addEventListener("submit", async (event) => {
@@ -556,9 +579,7 @@
             showSignedIn(result.data.user);
           }
         } catch (error) {
-          formMessage.textContent = error instanceof Error
-            ? error.message
-            : "Ocurrió un error al procesar la solicitud. Inténtalo de nuevo.";
+          formMessage.textContent = getAuthErrorMessage(error);
         } finally {
           submitButton.disabled = false;
         }
@@ -579,7 +600,7 @@
               authLinks.hidden = true;
               signedInPanel.hidden = true;
               setMode("update-password");
-            } else if (session?.user) {
+            } else if (session?.user && mode !== "update-password") {
               showSignedIn(session.user);
             }
           });
