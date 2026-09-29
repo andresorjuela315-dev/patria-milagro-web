@@ -208,6 +208,35 @@
         outline-offset: 3px;
       }
 
+      .auth-links {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 17px;
+      }
+
+      .text-button {
+        padding: 4px 0;
+        border: 0;
+        background: transparent;
+        color: var(--cyan);
+        font: inherit;
+        font-size: 0.84rem;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .text-button:hover {
+        color: #fff;
+        text-decoration: underline;
+      }
+
+      .text-button:focus-visible {
+        border-radius: 3px;
+        outline: 2px solid #fff;
+        outline-offset: 3px;
+      }
+
       .demo-note,
       .form-message {
         color: var(--muted);
@@ -224,6 +253,36 @@
         min-height: 1.2em;
         margin: 12px 0 0;
         color: #ffd29b;
+      }
+
+      .signed-in {
+        text-align: center;
+      }
+
+      .signed-in h2 {
+        margin: 0;
+        color: var(--cyan);
+        font-size: 1.35rem;
+      }
+
+      .signed-in p {
+        color: var(--muted);
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+      }
+
+      .signed-in[hidden],
+      .login-form[hidden],
+      .auth-links[hidden],
+      .demo-note[hidden],
+      .field[hidden] {
+        display: none;
+      }
+
+      .submit-button:disabled {
+        cursor: wait;
+        filter: grayscale(0.35);
+        opacity: 0.75;
       }
 
       @media (max-width: 420px) {
@@ -310,17 +369,55 @@
             >Mostrar</button>
           </div>
         </div>
-        <button class="submit-button" type="submit">Iniciar sesión</button>
+        <div class="field" id="confirm-field" hidden>
+          <label for="confirm-password">Confirmar contraseña</label>
+          <input
+            id="confirm-password"
+            name="confirm-password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Escribe de nuevo tu contraseña"
+            minlength="8"
+          >
+        </div>
+        <button class="submit-button" id="submit-button" type="submit">Iniciar sesión</button>
         <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
       </form>
-      <p class="demo-note">Vista de diseño: el inicio de sesión aún no está conectado.</p>
+      <nav class="auth-links" id="auth-links" aria-label="Opciones de cuenta">
+        <button class="text-button" id="switch-mode" type="button">Crear cuenta</button>
+        <button class="text-button" id="forgot-password" type="button">Olvidé mi contraseña</button>
+      </nav>
+      <section class="signed-in" id="signed-in" aria-live="polite" hidden>
+        <h2>Sesión iniciada</h2>
+        <p id="signed-in-email"></p>
+        <button class="submit-button" id="sign-out" type="button">Cerrar sesión</button>
+      </section>
+      <p class="demo-note" id="demo-note">Conexión segura de cuentas con Supabase.</p>
     </main>
 
-    <script>
+    <script type="module">
+      import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+      const SUPABASE_URL = "https://gdhzayrbquaknaomodoo.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_bl2W4DOpUR5KisRHCigkuw_rULyKHzG";
+
       const passwordInput = document.querySelector("#password");
       const togglePassword = document.querySelector("#toggle-password");
       const loginForm = document.querySelector("#login-form");
+      const emailInput = document.querySelector("#email");
+      const confirmField = document.querySelector("#confirm-field");
+      const confirmPasswordInput = document.querySelector("#confirm-password");
+      const submitButton = document.querySelector("#submit-button");
       const formMessage = document.querySelector("#form-message");
+      const authLinks = document.querySelector("#auth-links");
+      const switchModeButton = document.querySelector("#switch-mode");
+      const forgotPasswordButton = document.querySelector("#forgot-password");
+      const signedInPanel = document.querySelector("#signed-in");
+      const signedInEmail = document.querySelector("#signed-in-email");
+      const signOutButton = document.querySelector("#sign-out");
+      const demoNote = document.querySelector("#demo-note");
+      let supabase;
+      let mode = "login";
 
       togglePassword.addEventListener("click", () => {
         const isVisible = passwordInput.type === "text";
@@ -329,11 +426,181 @@
         togglePassword.setAttribute("aria-pressed", String(!isVisible));
       });
 
-      loginForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        formMessage.textContent =
-          "Esta es una vista de diseño. No ingreses credenciales reales.";
+      function setMode(nextMode) {
+        mode = nextMode;
+        const isSignup = mode === "signup";
+        const isRecovery = mode === "recovery";
+        const isUpdatingPassword = mode === "update-password";
+
+        document.querySelector(".brand .tagline").textContent =
+          isSignup ? "Crea tu cuenta para continuar" :
+          isRecovery ? "Recupera el acceso a tu cuenta" :
+          isUpdatingPassword ? "Elige una nueva contraseña" :
+          "Gestión inteligente de operaciones logísticas";
+        document.querySelector('label[for="password"]').textContent =
+          isUpdatingPassword ? "Nueva contraseña" : "Contraseña";
+        passwordInput.autocomplete = isSignup || isUpdatingPassword ? "new-password" : "current-password";
+        passwordInput.placeholder = isRecovery ? "No se necesita para recuperar" : "Ingresa tu contraseña";
+        passwordInput.required = !isRecovery;
+        passwordInput.minLength = isSignup || isUpdatingPassword ? 8 : 0;
+        passwordInput.hidden = isRecovery;
+        togglePassword.hidden = isRecovery;
+        confirmField.hidden = !(isSignup || isUpdatingPassword);
+        confirmPasswordInput.required = isSignup || isUpdatingPassword;
+        confirmPasswordInput.minLength = isSignup || isUpdatingPassword ? 8 : 0;
+        submitButton.textContent =
+          isSignup ? "Crear cuenta" :
+          isRecovery ? "Enviar enlace de recuperación" :
+          isUpdatingPassword ? "Guardar nueva contraseña" :
+          "Iniciar sesión";
+        switchModeButton.hidden = isRecovery || isUpdatingPassword;
+        forgotPasswordButton.hidden = isSignup || isRecovery || isUpdatingPassword;
+        switchModeButton.textContent = isSignup ? "Ya tengo una cuenta" : "Crear cuenta";
+        formMessage.textContent = "";
+        formMessage.style.color = "";
+      }
+
+      function showSignedIn(user) {
+        loginForm.hidden = true;
+        authLinks.hidden = true;
+        demoNote.hidden = true;
+        signedInPanel.hidden = false;
+        signedInEmail.textContent = user.email || "Tu cuenta";
+      }
+
+      switchModeButton.addEventListener("click", () => {
+        setMode(mode === "signup" ? "login" : "signup");
       });
+
+      forgotPasswordButton.addEventListener("click", () => {
+        setMode("recovery");
+      });
+
+      signOutButton.addEventListener("click", async () => {
+        signOutButton.disabled = true;
+        const { error } = await supabase.auth.signOut();
+        signOutButton.disabled = false;
+        if (error) {
+          formMessage.textContent = `No se pudo cerrar la sesión: ${error.message}`;
+          return;
+        }
+        signedInPanel.hidden = true;
+        loginForm.hidden = false;
+        authLinks.hidden = false;
+        demoNote.hidden = false;
+        passwordInput.value = "";
+        setMode("login");
+      });
+
+      loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        formMessage.textContent = "";
+        formMessage.style.color = "";
+        submitButton.disabled = true;
+
+        try {
+          const email = emailInput.value.trim();
+          let result;
+
+          if (mode === "signup") {
+            if (passwordInput.value !== confirmPasswordInput.value) {
+              throw new Error("Las contraseñas no coinciden.");
+            }
+            result = await supabase.auth.signUp({
+              email,
+              password: passwordInput.value,
+              options: {
+                emailRedirectTo: window.location.href.split("#")[0]
+              }
+            });
+            if (!result.error && !result.data.session) {
+              formMessage.textContent =
+                "Cuenta creada. Revisa tu correo y confirma la dirección para iniciar sesión.";
+              formMessage.style.color = "#a5e6b8";
+              return;
+            }
+          } else if (mode === "recovery") {
+            result = await supabase.auth.resetPasswordForEmail(email, {
+              redirectTo: window.location.href.split("#")[0]
+            });
+            if (!result.error) {
+              formMessage.textContent =
+                "Si existe una cuenta con ese correo, recibirás un enlace para restablecer la contraseña.";
+              formMessage.style.color = "#a5e6b8";
+              return;
+            }
+          } else if (mode === "update-password") {
+            if (passwordInput.value !== confirmPasswordInput.value) {
+              throw new Error("Las contraseñas no coinciden.");
+            }
+            result = await supabase.auth.updateUser({ password: passwordInput.value });
+            if (!result.error) {
+              formMessage.textContent = "Contraseña actualizada. Ya puedes usar tu cuenta.";
+              formMessage.style.color = "#a5e6b8";
+              setMode("login");
+              passwordInput.value = "";
+              confirmPasswordInput.value = "";
+              return;
+            }
+          } else {
+            result = await supabase.auth.signInWithPassword({
+              email,
+              password: passwordInput.value
+            });
+          }
+
+          if (result.error) {
+            throw result.error;
+          }
+          if (result.data.user && result.data.session) {
+            showSignedIn(result.data.user);
+          }
+        } catch (error) {
+          formMessage.textContent = error instanceof Error
+            ? error.message
+            : "Ocurrió un error al procesar la solicitud. Inténtalo de nuevo.";
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+
+      if (
+        SUPABASE_URL.startsWith("https://") &&
+        !SUPABASE_URL.includes("PEGA_AQUI") &&
+        SUPABASE_ANON_KEY &&
+        !SUPABASE_ANON_KEY.includes("PEGA_AQUI")
+      ) {
+        try {
+          supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+          supabase.auth.onAuthStateChange((event, session) => {
+            if (event === "PASSWORD_RECOVERY") {
+              loginForm.hidden = false;
+              authLinks.hidden = true;
+              signedInPanel.hidden = true;
+              setMode("update-password");
+            } else if (session?.user) {
+              showSignedIn(session.user);
+            }
+          });
+
+          const { data, error } = await supabase.auth.getSession();
+          if (error) {
+            throw error;
+          }
+          if (data.session?.user) {
+            showSignedIn(data.session.user);
+          }
+        } catch (error) {
+          formMessage.textContent = `No se pudo conectar con Supabase: ${error.message}`;
+        }
+      } else {
+        loginForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          formMessage.textContent =
+            "Falta configurar la URL y la clave pública de Supabase para activar el acceso.";
+        });
+      }
     </script>
   </body>
 </html>
