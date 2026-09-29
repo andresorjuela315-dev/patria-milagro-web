@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#071b38">
+    <meta
+      name="description"
+      content="Patria Milagro: gestión inteligente de operaciones logísticas."
+    >
+    <title>Patria Milagro | Acceso</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, "Segoe UI", Arial, sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        --navy: #071b38;
+        --cyan: #58caff;
+        --orange: #ff861b;
+        --muted: #9bb2d2;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 32px 20px;
+        overflow-x: hidden;
+        background:
+          radial-gradient(ellipse at 50% 112%, rgb(24 93 158 / 30%), transparent 48%),
+          linear-gradient(145deg, #0c2447 0%, var(--navy) 58%, #06162d 100%);
+        color: #f8fbff;
+      }
+
+      .login-card {
+        position: relative;
+        width: min(100%, 420px);
+        padding: 42px 38px 34px;
+        overflow: hidden;
+        border: 1px solid rgb(145 189 239 / 14%);
+        border-radius: 28px;
+        background: linear-gradient(160deg, rgb(16 42 78 / 96%), rgb(9 29 57 / 98%));
+        box-shadow: 0 28px 90px rgb(0 0 0 / 34%), inset 0 1px rgb(255 255 255 / 5%);
+      }
+
+      .brand {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        justify-items: center;
+        text-align: center;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 82px;
+        height: 82px;
+        place-items: center;
+        margin-bottom: 19px;
+        border-radius: 20px;
+        background: linear-gradient(145deg, #14b8f5, #0788e8);
+        box-shadow: 0 12px 28px rgb(0 160 244 / 24%);
+      }
+
+      .brand-mark svg {
+        width: 45px;
+        height: 45px;
+        fill: none;
+        stroke: #fff;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2.5;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 8vw, 2.35rem);
+        font-weight: 850;
+        letter-spacing: 0.075em;
+        line-height: 1.05;
+      }
+
+      h1 span {
+        display: block;
+        margin-top: 3px;
+        color: var(--orange);
+      }
+
+      .tagline {
+        max-width: 280px;
+        margin: 14px 0 0;
+        color: var(--cyan);
+        font-size: 1.06rem;
+        line-height: 1.45;
+      }
+
+      .truck-art {
+        display: block;
+        width: min(100%, 255px);
+        height: 76px;
+        margin: 23px auto 25px;
+        color: #1870bc;
+        opacity: 0.24;
+      }
+
+      .login-form {
+        position: relative;
+        z-index: 1;
+      }
+
+      .field {
+        margin-top: 16px;
+      }
+
+      label {
+        display: block;
+        margin: 0 0 8px;
+        color: var(--cyan);
+        font-size: 0.94rem;
+        font-weight: 700;
+      }
+
+      input {
+        width: 100%;
+        min-height: 56px;
+        padding: 0 17px;
+        border: 1px solid rgb(174 203 239 / 24%);
+        border-radius: 15px;
+        outline: none;
+        background: rgb(224 237 255 / 11%);
+        color: #fff;
+        font: inherit;
+        transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+      }
+
+      input::placeholder {
+        color: #a7b8d0;
+        opacity: 0.78;
+      }
+
+      input:focus {
+        border-color: var(--cyan);
+        background: rgb(224 237 255 / 15%);
+        box-shadow: 0 0 0 3px rgb(88 202 255 / 18%);
+      }
+
+      .password-wrap {
+        position: relative;
+      }
+
+      .password-wrap input {
+        padding-right: 74px;
+      }
+
+      .toggle-password {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        padding: 7px 4px;
+        transform: translateY(-50%);
+        border: 0;
+        background: transparent;
+        color: #b5cce7;
+        font: inherit;
+        font-size: 0.78rem;
+        cursor: pointer;
+      }
+
+      .toggle-password:hover,
+      .toggle-password:focus-visible {
+        color: #fff;
+      }
+
+      .submit-button {
+        width: 100%;
+        min-height: 54px;
+        margin-top: 24px;
+        border: 0;
+        border-radius: 15px;
+        background: linear-gradient(100deg, #0bb9f2, #0784e8);
+        box-shadow: 0 10px 24px rgb(0 148 235 / 22%);
+        color: white;
+        font: inherit;
+        font-weight: 750;
+        cursor: pointer;
+        transition: filter 150ms ease, transform 150ms ease;
+      }
+
+      .submit-button:hover {
+        filter: brightness(1.08);
+      }
+
+      .submit-button:active {
+        transform: translateY(1px);
+      }
+
+      .submit-button:focus-visible,
+      .toggle-password:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 3px;
+      }
+
+      .demo-note,
+      .form-message {
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      .demo-note {
+        margin: 16px 0 0;
+      }
+
+      .form-message {
+        min-height: 1.2em;
+        margin: 12px 0 0;
+        color: #ffd29b;
+      }
+
+      @media (max-width: 420px) {
+        body {
+          padding: 16px;
+        }
+
+        .login-card {
+          padding: 34px 24px 27px;
+          border-radius: 24px;
+        }
+
+        .truck-art {
+          margin-top: 20px;
+          margin-bottom: 18px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="login-card">
+      <header class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48">
+            <path d="M5 12h23v21H5z"></path>
+            <path d="M28 19h8l7 8v6H28z"></path>
+            <path d="M36 19v8h7"></path>
+            <circle cx="14" cy="36" r="4"></circle>
+            <circle cx="36" cy="36" r="4"></circle>
+            <path d="M5 33h5m8 0h10m8 0h-4"></path>
+          </svg>
+        </div>
+        <h1> PATRIA <span>MILAGRO</span></h1>
+        <p class="tagline">Gestión inteligente de operaciones logísticas</p>
+      </header>
+
+      <svg class="truck-art" viewBox="0 0 260 78" aria-hidden="true">
+        <path fill="currentColor" d="M16 20h128a7 7 0 0 1 7 7v36H16a7 7 0 0 1-7-7V27a7 7 0 0 1 7-7Zm145 12h35l36 24v7h-71V32Z"></path>
+        <path fill="currentColor" d="M167 39h26v15h-26zM198 39h8l21 15h-29z"></path>
+        <circle cx="55" cy="65" r="13" fill="currentColor"></circle>
+        <circle cx="55" cy="65" r="5" fill="#102a4e"></circle>
+        <circle cx="200" cy="65" r="13" fill="currentColor"></circle>
+        <circle cx="200" cy="65" r="5" fill="#102a4e"></circle>
+      </svg>
+
+      <form class="login-form" id="login-form">
+        <div class="field">
+          <label for="email">Correo electrónico</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="username"
+            placeholder="correo@empresa.com"
+            required
+          >
+        </div>
+        <div class="field">
+          <label for="password">Contraseña</label>
+          <div class="password-wrap">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Ingresa tu contraseña"
+              required
+            >
+            <button
+              class="toggle-password"
+              id="toggle-password"
+              type="button"
+              aria-controls="password"
+              aria-pressed="false"
+            >Mostrar</button>
+          </div>
+        </div>
+        <button class="submit-button" type="submit">Iniciar sesión</button>
+        <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+      </form>
+      <p class="demo-note">Vista de diseño: el inicio de sesión aún no está conectado.</p>
+    </main>
+
+    <script>
+      const passwordInput = document.querySelector("#password");
+      const togglePassword = document.querySelector("#toggle-password");
+      const loginForm = document.querySelector("#login-form");
+      const formMessage = document.querySelector("#form-message");
+
+      togglePassword.addEventListener("click", () => {
+        const isVisible = passwordInput.type === "text";
+        passwordInput.type = isVisible ? "password" : "text";
+        togglePassword.textContent = isVisible ? "Mostrar" : "Ocultar";
+        togglePassword.setAttribute("aria-pressed", String(!isVisible));
+      });
+
+      loginForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        formMessage.textContent =
+          "Esta es una vista de diseño. No ingreses credenciales reales.";
+      });
+    </script>
+  </body>
+</html>
